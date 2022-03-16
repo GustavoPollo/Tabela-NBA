@@ -5,16 +5,24 @@ import json
 import codecs
 import sys
 import time
+import os.path
+import platform
 
 conferencia = {}
 conferencia["conferencia_leste"] = []
 conferencia["conferencia_oeste"] = []
+so = platform.system()
 
 #================================================
 # Entra na página selecionada sem abrir o navegador.
 options = webdriver.ChromeOptions()
 options.add_argument("--headless")
-driver = webdriver.Chrome(chrome_options=options)
+if so == 'Windows':
+    driver = webdriver.Chrome(".\\chromedriver\\chromedriver_windows.exe", chrome_options=options)
+elif so == 'Linux':
+    driver = webdriver.Chrome(".\\chromedriver\\chromedriver_linux.exe", chrome_options=options)
+else:
+    print("Sistema Operacional não reconhecido.")
 driver.get("https://www.espn.com.br/nba/classificacao/_/ordenar/wins/dir/desce")
 
 #================================================
@@ -31,7 +39,6 @@ def leste():
     trs_times = tbody_times.find_elements_by_tag_name('tr')
     trs_dados = tbody_dados.find_elements_by_tag_name('tr')
 
-    
     #================================================
     # For que seleciona apenas os textos encontrados
     # nas tabelas captadas, depois cria um dicionário
@@ -136,7 +143,7 @@ def oeste():
 # Função que converte o dicionário criado para
 # um arquivo .json de nome "tabela.json"
 def write_json():
-    with open(r"C:\projetos\git\Tabela-NBA\tabela.json", 'wb') as outfile:
+    with open(r".\resultados\tabela.json", 'wb') as outfile:
         json.dump(conferencia, codecs.getwriter("utf-8")(outfile))
 
 #================================================
@@ -145,20 +152,24 @@ def write_json():
 # ou não atualizar o arquivo .json, caso não queira
 # abre o arquivo ja existente para leitura apenas.
 time.sleep(5)
-print("*********************************")
-print("Deseja atualizar a lista?")
-print("*********************************")
-atualizar = input(" S ou N:")
-if str(atualizar).upper() == "S":
-    leste()
-    oeste()
-    write_json()
-elif str(atualizar).upper() == "N":
-    with open(r'C:\projetos\git\Tabela-NBA\tabela.json', 'r') as openfile: 
-        json_object = json.load(openfile)
+if(os.path.exists(r'.\resultados\tabela.json')):
+    print("*********************************")
+    print("Deseja atualizar a lista?")
+    print("*********************************")
+    atualizar = input(" S ou N:")
+    if str(atualizar).upper() == "S":
+        leste()
+        oeste()
+        write_json()
+    elif str(atualizar).upper() == "N":
+        with open(r'.\resultados\tabela.json', 'r') as openfile: 
+            json_object = json.load(openfile)
+    else:
+        print("valor invalido")
+        sys.exit()
 else:
-    print("valor invalido")
-    sys.exit()
+    write_json()
+
 
 #================================================
 # Pergunta quais os filtros o usuário quer usar
